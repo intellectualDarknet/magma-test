@@ -1,115 +1,110 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, User } from 'generated/prisma/client';
 import { Paginated } from 'types/paginated';
+import { User } from 'schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name)
+  private readonly logger = new Logger(UsersService.name);
 
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+  ) {}
 
   async create(data: CreateUserDto): Promise<User> {
     try {
-      return await this.prismaService.user.create({
-        data
-      })
-    } catch(e) {
-      this.logger.error(`During creation of user got error. ${e}`)
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e?.code === 'P2002') {
-          throw new BadRequestException(
-            'The user with this email already exists',
-          )
-        }
+      return await this.userModel.create(data);
+    } catch (e: any) {
+      this.logger.error(`During creation of user got error. ${e}`);
+
+      if (e.code === 11000) {
+        throw new BadRequestException(
+          'The user with this email already exists',
+        );
       }
 
-      throw new InternalServerErrorException('Something went wrong')
+      throw new InternalServerErrorException('Something went wrong');
     }
   }
 
   async findOne(id: string): Promise<User | null> {
     try {
-      return await this.prismaService.user.findUnique({
-        where: {
-          id
-        }
-      })
+      return await this.userModel.findById(id).exec();
     } catch (e) {
-      this.logger.error(`During getting user with id: ${id} got error. ${e}`)
-      throw new InternalServerErrorException('Something went wrong')
+      this.logger.error(`During getting user with id: ${id} got error. ${e}`);
+      throw new InternalServerErrorException('Something went wrong');
     }
   }
 
   async findAll(skip = 0, take = 10): Promise<Paginated<User>> {
     try {
-      return await this.prismaService.$transaction(async (tx) => {
-        const count = await tx.user.count()
-        const data = await tx.user.findMany({
-          skip,
-          take
-        })
-        return {data, count}
-      })
+      const [data, count] = await Promise.all([
+        this.userModel.find().skip(skip).limit(take).exec(),
+        this.userModel.countDocuments(),
+      ]);
+
+      return { data, count };
     } catch (e) {
-      this.logger.error(
-        `During getting the users got error. ${e}`,
-      )
-      throw new InternalServerErrorException('Something went wrong')
+      this.logger.error(`During getting the users got error. ${e}`);
+      throw new InternalServerErrorException('Something went wrong');
     }
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<User>  {
+  async update(id: string, data: UpdateUserDto): Promise<User> {
     try {
-      return await this.prismaService.user.update({
-        where: {
-          id
-        },
-        data
-      })
-    }
-    catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      const user = await this.userModel
+        .findByIdAndUpdate(id, data, { new: true })
+        .exec();
 
-        if (e?.code === 'P2025') {
-          throw new BadRequestException('The user does not exist')
-        }
+      if (!user) {
+        throw new BadRequestException('The user does not exist');
+      }
 
-        if (e?.code === 'P2002') {
-          throw new BadRequestException('The user with that email already exist')
-        }
+      return user;
+    } catch (e: any) {
+      if (e.code === 11000) {
+        throw new BadRequestException(
+          'The user with that email already exists',
+        );
       }
 
       this.logger.error(
         `During updating the user with id: ${id} got error. ${e}`,
-      )
-      throw new InternalServerErrorException('Something went wrong')
-    }
-  }
-
-  async remove(id: string): Promise<User>  {
-    try {
-      return await this.prismaService.user.delete({
-        where: {
-          id,
-        },
-      })
-    } catch (e) {
-      this.logger.error(
-        `Error while removing user with ID "${id}": ${e}`,
-      )
-
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e?.code === 'P2025') {
-          throw new BadRequestException('The user does not exist')
-        }
-      }
+      );
 
       throw new NotFoundException(
         `Error during removing user with ID ${id}`,
-      )
+      );
+    }
+  }
+
+  async remove(id: string): Promise<User> {
+    try {
+      const user = await this.userModel.findByIdAndDelete(id).exec();
+
+      if (!user) {
+        throw new BadRequestException('The user does not exist');
+      }
+
+      return user;
+    } catch (e) {
+      this.logger.error(
+        `Error while removing user with ID "${id}": ${e}`,
+      );
+
+      throw new NotFoundException(
+        `Error during removing user with ID ${id}`,
+      );
     }
   }
 }

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
+import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule],
+  imports: [MongooseModule.forRoot('mongodb://root:prisma@localhost/nest?authSource=admin'), UsersModule],
 })
 export class AppModule {}
