@@ -3,10 +3,14 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User, UserSchema } from 'schemas/user.schema';
 import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
+import { RmqModule } from 'src/rmq/rmq.module';
 
 @Module({
   controllers: [UsersController],
   providers: [UsersService],
-  imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])]
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    RmqModule
+  ]
 })
 export class UsersModule {}

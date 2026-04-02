@@ -9,3 +9,18 @@ services:
       INIT_WAIT_SEC: 3
     ports:
       - 27017:27017
+
+  rabbitmq:
+    image: rabbitmq:latest
+    container_name: magma-rabbitmq
+    ports:
+      - '5672:5672'   # app connection
+      - '15672:15672' # UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:

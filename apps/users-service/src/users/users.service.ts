@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Paginated } from 'types/paginated';
 import { User } from 'schemas/user.schema';
+import { RmqService } from 'src/rmq/rmq.service';
 
 @Injectable()
 export class UsersService {
@@ -19,12 +20,18 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
+    private readonly rmqService: RmqService
   ) {}
 
   async create(data: CreateUserDto): Promise<User> {
     try {
-      return await this.userModel.create(data);
+      const user = await this.userModel.create(data);
+      
+      await this.rmqService.sendMessage();
+
+      return user;
     } catch (e: any) {
+      console.log(e)
       this.logger.error(`During creation of user got error. ${e}`);
 
       if (e.code === 11000) {
@@ -55,7 +62,7 @@ export class UsersService {
 
       return { data, count };
     } catch (e) {
-      this.logger.error(`During getting the users got error. ${e}`);
+      this.logger.error(`During getting the users got error. ${e.message}`);
       throw new InternalServerErrorException('Something went wrong');
     }
   }
