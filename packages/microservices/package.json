@@ -1,0 +1,21 @@
+{
+  "name": "@repo/microservices",
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.mjs",
+  "scripts": {
+    "build": "tsup"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/microservices": "^10.3.10"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^20.14.2",
+    "typescript": "^5.5.4",
+    "tsup": "8.0.2"
+  }
+}

@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { RmqService } from './rmq.service';
+import { ConfigService } from '@nestjs/config'
 import { ClientsModule } from '@nestjs/microservices';
-import { NOTIFICATION_RMQ_NAME, NotificationRmqConfig } from 'temp/rabbitmq.options';
+import { NOTIFICATION_RMQ_SERVICE, NotificationRmqConfig } from '@repo/microservices';
 
 @Module({
   providers: [RmqService],
@@ -9,8 +10,10 @@ import { NOTIFICATION_RMQ_NAME, NotificationRmqConfig } from 'temp/rabbitmq.opti
   imports: [
     ClientsModule.registerAsync([
       {
-        name: NOTIFICATION_RMQ_NAME,
-        useFactory: async () => NotificationRmqConfig()
+        name: NOTIFICATION_RMQ_SERVICE,
+        useFactory: async (configService: ConfigService) =>
+          NotificationRmqConfig([configService.getOrThrow<string>('RMQ_URL')]),
+        inject: [ConfigService],
       },
     ]),
   ]

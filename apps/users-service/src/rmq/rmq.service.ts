@@ -1,17 +1,16 @@
 import { Inject, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
-import { ClientProxy, ClientProxyFactory } from "@nestjs/microservices";
+import { ClientProxy } from "@nestjs/microservices";
+import { CREATE_USER, DELETE_USER, NOTIFICATION_RMQ_SERVICE } from "@repo/microservices";
 import { lastValueFrom, timeout } from "rxjs";
-import { NOTIFICATION_RMQ_NAME } from "temp/rabbitmq.options";
 
 @Injectable()
 export class RmqService {
   private readonly logger = new Logger(RmqService.name)
 
   constructor(
-    @Inject(NOTIFICATION_RMQ_NAME)
+    @Inject(NOTIFICATION_RMQ_SERVICE)
     private readonly usersClient: ClientProxy,
-  ) {
-  }
+  ) {}
 
   async onApplicationBootstrap() {
     await this.usersClient.connect()
@@ -25,18 +24,20 @@ export class RmqService {
       })
   }
 
-  async sendMessage(type: 'create' | 'delete') {
+  async createUser(message: string) {
     try {
-      return await lastValueFrom(
-        this.usersClient
-          .emit<boolean, any>(
-            { cmd: `notification:${type}` },
-            Math.random().toString(),
-          )
-          .pipe(timeout(5000)),
-      )
+      this.usersClient.emit(CREATE_USER, message)
     } catch (e) {
-      console.log(JSON.stringify(e))
+      this.logger.error(JSON.stringify(e))
+      throw new InternalServerErrorException('Something went wrong')
+    }
+  }
+
+  async deleteUser(message: string) {
+    try {
+      this.usersClient.emit(DELETE_USER, message)
+    } catch (e) {
+      this.logger.error(JSON.stringify(e))
       throw new InternalServerErrorException('Something went wrong')
     }
   }

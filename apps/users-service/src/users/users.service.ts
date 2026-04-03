@@ -25,12 +25,8 @@ export class UsersService {
 
   async create(data: CreateUserDto): Promise<User> {
     try {
-
-      const res = await this.rmqService.sendMessage('create');
-
-      console.log('res', res)
-
       const user = await this.userModel.create(data);
+      await this.rmqService.createUser(`user id ${user.id} was created`);
 
       return user;
     } catch (e: any) {
@@ -106,6 +102,8 @@ export class UsersService {
         throw new BadRequestException('The user does not exist');
       }
 
+      await this.rmqService.deleteUser(`user id ${user.id} was deleted`);
+      
       return user;
     } catch (e) {
       this.logger.error(
