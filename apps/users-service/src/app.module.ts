@@ -3,6 +3,7 @@ import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
 import { RmqModule } from './rmq/rmq.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HealthcheckModule } from './healthcheck/healthcheck.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    HealthcheckModule,
     UsersModule,
     RmqModule,
     ConfigModule.forRoot({ isGlobal: true })

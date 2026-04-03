@@ -2,10 +2,11 @@ version: '3.7'
 services:
   mongodb_container:
     # This image automatically creates a replica set required for transactions
-    image: prismagraphql/mongo-single-replica:4.4.3-bionic
+    image: mongo
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_ROOT_PASSWORD: example
       INIT_WAIT_SEC: 3
     ports:
       - 27017:27017
@@ -14,13 +15,50 @@ services:
     image: rabbitmq:latest
     container_name: magma-rabbitmq
     ports:
-      - '5672:5672'   # app connection
-      - '15672:15672' # UI
+      - '5672:5672'
+      - '15672:15672'
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+  users-service:
+    build:
+      context: .
+      dockerfile: ./apps/users-service/dockerfile
+    container_name: users-service
+    depends_on:
+      mongodb_container:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mongodb://root:example@mongodb_container:27017/?authSource=admin
+      RMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "3001:3000"
+  
+  notifications-service:
+    build:
+      context: .
+      dockerfile: ./apps/notifications-service/dockerfile
+    container_name: notifications-service
+    depends_on:
+      mongodb_container:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RMQ_URL: amqp://admin:admin@rabbitmq:5672
+    ports:
+      - "3002:3001"
 
 volumes:
   rabbitmq_data:

@@ -9,8 +9,8 @@ WORKDIR /app
 COPY . .
 RUN npm i -g turbo
 RUN pnpm install --frozen-lockfile
-RUN pnpm turbo run build --filter=users-service
-RUN pnpm --filter users-service deploy --prod /app/deploy
+RUN pnpm turbo run build --filter=notifications-service
+RUN pnpm --filter notifications-service deploy --prod /app/deploy
 
 FROM base AS runner
 
@@ -19,6 +19,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/deploy/ .
-COPY --from=builder /app/apps/users-service/dist ./dist
+COPY --from=builder /app/apps/notifications-service/dist ./dist
 
 CMD ["node", "dist/src/main.js"]
