@@ -30,7 +30,6 @@ export class UsersService {
 
       return user;
     } catch (e: any) {
-      console.log(e)
       this.logger.error(`During creation of user got error. ${e}`);
 
       if (e.code === 11000) {
