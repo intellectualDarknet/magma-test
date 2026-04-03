@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose/dist/mongoose.module';
 import { RmqModule } from './rmq/rmq.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HealthcheckModule } from './healthcheck/healthcheck.module';
+import { LoggerModule, pinoForRootConfig } from '@repo/pino-nestjs';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { HealthcheckModule } from './healthcheck/healthcheck.module';
     HealthcheckModule,
     UsersModule,
     RmqModule,
-    ConfigModule.forRoot({ isGlobal: true })
+    ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot(pinoForRootConfig)
   ],
 })
 export class AppModule {}

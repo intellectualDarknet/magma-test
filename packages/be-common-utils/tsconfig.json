@@ -1,0 +1,12 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "include": [".", "types/**/*.d.ts"],
+  "exclude": ["dist", "build"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "CommonJS",
+    "target": "ES2021",
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true
+  }
+}

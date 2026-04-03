@@ -1,7 +1,6 @@
 version: '3.7'
 services:
   mongodb_container:
-    # This image automatically creates a replica set required for transactions
     image: mongo
     restart: always
     environment:
@@ -43,7 +42,7 @@ services:
       DATABASE_URL: mongodb://root:example@mongodb_container:27017/?authSource=admin
       RMQ_URL: amqp://admin:admin@rabbitmq:5672
     ports:
-      - "3001:3000"
+      - "3000:3000"
   
   notifications-service:
     build:
@@ -58,7 +57,7 @@ services:
     environment:
       RMQ_URL: amqp://admin:admin@rabbitmq:5672
     ports:
-      - "3002:3001"
+      - "3001:3001"
 
 volumes:
   rabbitmq_data:

@@ -6,11 +6,9 @@ private readonly logger = new Logger(ProcessorService.name);
 
   create(str: string) {
     this.logger.log(str)
-    return true;
   }
 
   delete(str: string) {
     this.logger.log(str)
-    return true
   }
 }

@@ -9,11 +9,11 @@ export class ProcessorController {
 
   @EventPattern(CREATE_USER)
   create(@Payload() str: string) {
-    return this.processorService.create(str);
+    this.processorService.create(str);
   }
   
   @EventPattern(DELETE_USER)
   delete(@Payload() str: string) {
-    return this.processorService.delete(str);
+    this.processorService.delete(str);
   }
 }

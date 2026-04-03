@@ -8,8 +8,8 @@ export const NOTIFICATION_RMQ_SERVICE = 'NOTIFICATION_RMQ_SERVICE'
 export const NotificationRmqConfig = (urls: string[] | string): RmqOptions => ({
   transport: Transport.RMQ,
   options: {
-    urls: Array.isArray(urls) ? urls : [urls], // Replace with your RabbitMQ server URL
-    queue: NOTIFICATION_QUEUE, // Define the queue name
+    urls: Array.isArray(urls) ? urls : [urls],
+    queue: NOTIFICATION_QUEUE,
     queueOptions: {
       durable: true
     },

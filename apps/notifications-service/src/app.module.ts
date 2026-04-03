@@ -1,18 +1,16 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { HealthcheckModule } from './healthcheck/healthcheck.module';
 import { ProcessorModule } from './processor/processor.module';
 import { ConfigModule } from '@nestjs/config';
+import { LoggerModule, pinoForRootConfig } from '@repo/pino-nestjs';
 
 @Module({
   imports: [
     HealthcheckModule,
     ProcessorModule,
-    ConfigModule.forRoot({ isGlobal: true })
+    ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot(pinoForRootConfig)
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 
 export class AppModule {}
