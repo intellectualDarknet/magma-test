@@ -25,9 +25,12 @@ export class UsersService {
 
   async create(data: CreateUserDto): Promise<User> {
     try {
+
+      const res = await this.rmqService.sendMessage('create');
+
+      console.log('res', res)
+
       const user = await this.userModel.create(data);
-      
-      await this.rmqService.sendMessage();
 
       return user;
     } catch (e: any) {

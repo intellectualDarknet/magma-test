@@ -1,20 +1,20 @@
-import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { Inject, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { ClientProxy, ClientProxyFactory } from "@nestjs/microservices";
 import { lastValueFrom, timeout } from "rxjs";
-import { rabbitMQConfig } from "temp/rabbitmq.options";
+import { NOTIFICATION_RMQ_NAME } from "temp/rabbitmq.options";
 
 @Injectable()
 export class RmqService {
   private readonly logger = new Logger(RmqService.name)
 
-  private client: ClientProxy;
-
-  constructor() {
-    this.client = ClientProxyFactory.create(rabbitMQConfig());
+  constructor(
+    @Inject(NOTIFICATION_RMQ_NAME)
+    private readonly usersClient: ClientProxy,
+  ) {
   }
 
   async onApplicationBootstrap() {
-    await this.client.connect()
+    await this.usersClient.connect()
       .then(() => {
         this.logger.log('Connected to RabbitMQ successfully');
       })
@@ -25,12 +25,12 @@ export class RmqService {
       })
   }
 
-  async sendMessage() {
+  async sendMessage(type: 'create' | 'delete') {
     try {
       return await lastValueFrom(
-        this.client
-          .send<boolean, any>(
-            { cmd: 'cmd' },
+        this.usersClient
+          .emit<boolean, any>(
+            { cmd: `notification:${type}` },
             Math.random().toString(),
           )
           .pipe(timeout(5000)),
